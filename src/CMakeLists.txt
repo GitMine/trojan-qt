@@ -1,12 +1,14 @@
 SET(CMAKE_AUTORCC ON)
 SET(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 SET(TROJAN_QT_HEADER
   trojan/src/authenticator.h
   trojan/src/clientsession.h
   trojan/src/config.h
   trojan/src/forwardsession.h
+  trojan/src/udpforwardsession.h
   trojan/src/log.h
   trojan/src/serversession.h
   trojan/src/service.h
@@ -32,6 +34,7 @@ set(TROJAN_QT_SRC
   trojan/src/clientsession.cpp
   trojan/src/config.cpp
   trojan/src/forwardsession.cpp
+  trojan/src/udpforwardsession.cpp
   trojan/src/log.cpp
   trojan/src/serversession.cpp
   trojan/src/service.cpp
@@ -66,7 +69,7 @@ add_executable(trojan-qt
   ${TROJAN_QT_RES}
 )
 
-target_link_libraries(trojan-qt
+target_link_libraries(trojan-qt PRIVATE
   ${CMAKE_THREAD_LIBS_INIT}
   ${Boost_LIBRARIES}
   ${OPENSSL_LIBRARIES}
@@ -79,6 +82,7 @@ target_include_directories(trojan-qt PRIVATE
 )
 
 if (APPLE)
+    find_framework(Security trojan-qt)
     set(MACOSX_ICON "${CMAKE_CURRENT_SOURCE_DIR}/trojan-qt.icns")
     set_source_files_properties(${MACOSX_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     target_sources(trojan-qt PRIVATE ${MACOSX_ICON})
@@ -86,10 +90,15 @@ if (APPLE)
     set_target_properties(trojan-qt PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist)
 elseif(WIN32)
     # compile as a win32 gui application instead of a console application
-    target_link_libraries(trojan-qt PRIVATE Qt5::WinMain)
+    target_link_libraries(trojan-qt PRIVATE Qt5::WinMain wsock32 ws2_32 crypt32)
     if(MSVC)
         set_target_properties(trojan-qt PROPERTIES LINK_FLAGS_RELEASE "/SUBSYSTEM:WINDOWS")
     elseif(MINGW)
         set_target_properties(trojan-qt PROPERTIES LINK_FLAGS_RELEASE "-mwindows")
     endif()
+endif()
+
+if(MSVC)
+  include(CopyQt5Deps)
+  copy_Qt5_deps(trojan-qt)
 endif()

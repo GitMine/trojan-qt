@@ -8,8 +8,6 @@
 
 Todo | Comment
 ------- | -------
-Linux | Done
-Mac | Automatic system proxy setting not supported
 Windows | Automatic system proxy setting not supported
 
 ## Documentation

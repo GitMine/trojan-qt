@@ -26,11 +26,16 @@ ICON = trojan-qt.icns
 CONFIG += c++11
 
 mac{
+    LIBS += -framework Security
+    INCLUDEPATH += /usr/local/include/
+
     QMAKE_INCDIR += /System/Library/Frameworks/AppKit.framework/Headers /System/Library/Frameworks/Security.framework/Headers /System/Library/Frameworks/ServiceManagement.framework/Headers
     QMAKE_LFLAGS += -framework IOKit -framework Cocoa -framework Security
     QMAKE_LFLAGS += -F /System/Library/Frameworks/Security.framework/
-    LIBS += -framework Security
-    INCLUDEPATH += /usr/local/include/
+    QMAKE_INFO_PLIST = ./Info.plist
+    plist.path = "$$DESTDIR/$$join(TARGET,,,.app)/Contents"
+    plist.files = ./Info.plist
+    INSTALLS += plist
 }
 
 unix{
@@ -60,6 +65,7 @@ SOURCES += \
     trojan/src/sslsession.cpp \
     trojan/src/trojanrequest.cpp \
     trojan/src/udppacket.cpp \
+    trojan/src/udpforwardsession.cpp \
     trojan/src/version.cpp \
     App.cpp \
     main.cpp \
@@ -84,6 +90,7 @@ HEADERS += \
     trojan/src/ssldefaults.h \
     trojan/src/sslsession.h \
     trojan/src/trojanrequest.h \
+    trojan/src/udpforwardsession.h \
     trojan/src/version.h \
     App.h \
     Window.h \

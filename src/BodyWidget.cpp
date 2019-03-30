@@ -35,6 +35,7 @@ BodyWidget::BodyWidget(QWidget *parent)
   settings_button->setHoveredPixmap(":/img/img/settings_hovered.png", 50);
   settings_button->setPressedPixmap(":/img/img/settings_hovered.png", 50);
   settings_button->setAlignment(Qt::AlignCenter);
+  settings_button->setHidden(true); // Remove in the future.
 
   QVBoxLayout *mainLayout = new QVBoxLayout(this);
   mainLayout->setContentsMargins(30,0,30,20);
@@ -46,8 +47,8 @@ BodyWidget::BodyWidget(QWidget *parent)
   mainLayout->addSpacing(8);
   mainLayout->addWidget(config_button);
   mainLayout->addSpacing(8);
-  mainLayout->addLayout(mode_layout);
   mainLayout->addSpacing(80);
+  mainLayout->addLayout(mode_layout);
   mainLayout->addWidget(settings_button);
 
   QPalette palette(this->palette());

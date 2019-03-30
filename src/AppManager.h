@@ -3,6 +3,8 @@
 
 #include "trojan/src/config.h"
 
+#include <regex>
+
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QString>
@@ -47,6 +49,7 @@ public:
   static bool writeTrojanConfig();
 
   static void setSystemProxy(const bool &enabled);
+  static std::string runShell(const std::string &cmd);
 
   static void popMessageBox(LogLevel l, QString info, QWidget *parent);
 

@@ -21,8 +21,8 @@
 
 Window::Window(QWidget *parent)
   : QWidget(parent)
-  , hide_action(new QAction(tr("&Hide"), this))
-  , show_action(new QAction(tr("&Show"), this))
+  , start_action(new QAction(tr("&Turn Trojan On"), this))
+  , show_action(new QAction(tr("&Open Trojan Qt"), this))
   , quit_action(new QAction(tr("&Quit"), this))
   , tray_menu(new QMenu(this))
   , tray_icon(new QSystemTrayIcon(this))
@@ -32,9 +32,9 @@ Window::Window(QWidget *parent)
   , body_widget(new BodyWidget(this))
   , stacked_widget(new QStackedWidget(this))
 {
-  tray_menu->addAction(hide_action);
-  tray_menu->addAction(show_action);
+  tray_menu->addAction(start_action);
   tray_menu->addSeparator();
+  tray_menu->addAction(show_action);
   tray_menu->addAction(quit_action);
 
   tray_icon->setContextMenu(tray_menu);
@@ -76,10 +76,10 @@ Window::Window(QWidget *parent)
   this->setWindowIcon(QIcon(":/img/img/logo.png"));
 #endif
 
-  connect(hide_action, &QAction::triggered, this, &QWidget::hide);
+  connect(start_action, &QAction::triggered, body_widget->start_button, &Button::clicked);
   connect(show_action, &QAction::triggered, [this](){this->show();this->raise();});
   connect(quit_action, &QAction::triggered, qApp, &QCoreApplication::quit);
-  connect(tray_icon, &QSystemTrayIcon::activated, [this](){this->show();this->raise();});
+//  connect(tray_icon, &QSystemTrayIcon::activated, [this](){this->show();this->raise();});
   connect(body_widget->server_rbutton, &QRadioButton::toggled, this, &Window::onRadioButtonToggled);
   connect(body_widget->start_button, &Button::clicked, this, &Window::onStartButtonClicked);
   connect(body_widget->config_button, &Button::clicked, this, &Window::onConfigButtonClicked);
@@ -102,6 +102,10 @@ void Window::setCurrentMode(const Config::RunType &t)
       {
         body_widget->server_rbutton->setChecked(true);
         onRadioButtonToggled(true);
+        break;
+      }
+    default:
+      {
         break;
       }
     }
@@ -130,6 +134,7 @@ void Window::onStartButtonClicked()
 {
   if(!isRunning)
     {
+      start_action->setText("Turn Trojan Off");
       body_widget->config_button->setEnabled(false);
       body_widget->server_rbutton->setEnabled(false);
       body_widget->client_rbutton->setEnabled(false);
@@ -140,6 +145,7 @@ void Window::onStartButtonClicked()
     }
   else
     {
+      start_action->setText("Turn Trojan On");
       body_widget->config_button->setEnabled(true);
       body_widget->server_rbutton->setEnabled(true);
       body_widget->client_rbutton->setEnabled(true);

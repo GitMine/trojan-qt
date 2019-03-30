@@ -50,7 +50,7 @@ public slots:
   void onRadioButtonToggled(bool serverMode);
 
 private:
-  QAction *hide_action;
+  QAction *start_action;
   QAction *show_action;
   QAction *quit_action;
   QMenu *tray_menu;

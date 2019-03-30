@@ -1,4 +1,6 @@
 #include "AppManager.h"
+#include <sstream>
+
 
 QJsonObject AppManager::client_config_obj;
 QJsonObject AppManager::server_config_obj;
@@ -211,6 +213,22 @@ bool AppManager::writeTrojanConfig()
 
 void AppManager::setSystemProxy(const bool &enabled)
 {
+#ifdef Q_OS_MAC
+  std::istringstream s(runShell("networksetup -listnetworkserviceorder"));
+
+  std::vector<std::string> hardwarePorts;
+  std::string portName;
+
+  std::regex all("\\((\\d)*\\)\\s(.*)", std::regex_constants::ECMAScript | std::regex_constants::icase);
+  std::regex prefix("\\((\\d)*\\)\\s", std::regex_constants::ECMAScript | std::regex_constants::icase);
+  while(std::getline(s, portName))
+    {
+      if(std::regex_match(portName, all))
+        hardwarePorts.push_back(std::regex_replace(portName, prefix, ""));
+    }
+#endif
+
+
   if(enabled)
     {
 #ifdef Q_OS_LINUX
@@ -222,15 +240,37 @@ void AppManager::setSystemProxy(const bool &enabled)
           system("gsettings set org.gnome.system.proxy mode \"manual\"");
         }
 #endif
+#ifdef Q_OS_MAC
+
+      for (auto &i : hardwarePorts)
+        {
+          runShell(QString("networksetup -setsocksfirewallproxy \"%1\" \"%2\" \"%3\"")
+                   .arg(QString::fromStdString(i))
+                   .arg(client_config_obj["local_addr"].toString("0"))
+                   .arg(client_config_obj["local_port"].toString("0"))
+                   .toStdString());
+        }
+#endif
     }
   else
     {
+
 #ifdef Q_OS_LINUX
       if(system("gsettings --version > /dev/null") == 0)
         {
           system(QString("gsettings set org.gnome.system.proxy.socks port 0").toStdString().c_str());
           system(QString("gsettings set org.gnome.system.proxy.socks host 0").toStdString().c_str());
           system("gsettings set org.gnome.system.proxy mode \"none\"");
+        }
+#endif
+#ifdef Q_OS_MAC
+      for (auto &i : hardwarePorts)
+        {
+          runShell(QString("networksetup -setsocksfirewallproxy \"%1\" \"%2\" \"%3\"")
+                   .arg(QString::fromStdString(i))
+                   .arg("")
+                   .arg("")
+                   .toStdString());
         }
 #endif
     }
@@ -268,4 +308,20 @@ QString AppManager::logLevelToString(AppManager::LogLevel l)
       break;
     }
   return r;
+}
+
+/*!
+ * \brief AppManager::runShell
+ * \ref https://stackoverflow.com/questions/478898/how-to-execute-a-command-and-get-output-of-command-within-c-using-posix
+ */
+std::string AppManager::runShell(const std::string &cmd)
+{
+    std::array<char, 128> buffer;
+    std::string result;
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    if (!pipe)
+      throw std::runtime_error("popen() failed!");
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr)
+      result += buffer.data();
+    return result;
 }

@@ -1,0 +1,46 @@
+jobs:
+# macOS native build
+- job: macOSNativeBuilds
+  pool:
+    vmImage: 'macOS-10.13'
+
+  steps:
+  - bash: ./.azp/macos/deps.sh
+    displayName: 'Install dependencies'
+  - bash: git submodule update --init --recursive
+    displayName: 'Fetch submodules'
+  - bash: sudo xcode-select -s /Applications/Xcode_10.1.app/Contents/Developer
+    displayName: 'Select XCode version'
+  - bash: ./.azp/macos/build.sh
+    displayName: 'Build Trojan Qt'
+  - bash: /bin/bash -ex ./.azp/macos/upload.sh
+    displayName: 'Pack Trojan Qt'
+    condition: succeeded()
+  - task: PublishPipelineArtifact@0
+    condition: succeeded()
+    displayName: 'Upload to artifact depot'
+    inputs:
+      artifactName: 'macos'
+      targetPath: $(Build.ArtifactStagingDirectory)/artifacts
+
+# Windows native build
+- job: MSVCNativeBuilds
+  pool:
+    vmImage: 'vs2017-win2016'
+
+  steps:
+  - bash: /bin/bash -ex ./.azp/windows-msvc/deps.sh
+    displayName: 'Install dependencies'
+  - bash: git submodule update --init --recursive
+    displayName: 'Fetch submodules'
+  - bash: /bin/bash -ex ./.azp/windows-msvc/build.sh
+    displayName: 'Build Trojan Qt'
+  - bash: /bin/bash -ex ./.azp/windows-msvc/upload.sh
+    displayName: 'Pack Trojan Qt'
+    condition: succeeded()
+  - task: PublishPipelineArtifact@0
+    condition: succeeded()
+    displayName: 'Upload to artifact depot'
+    inputs:
+      artifactName: 'windows-msvc'
+      targetPath: $(Build.ArtifactStagingDirectory)/artifacts
